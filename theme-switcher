@@ -1,0 +1,22 @@
+#!/usr/bin/env zsh
+
+KITTY_THEMES_DIR="$HOME/.config/kitty/themes"
+CURRENT_THEME="$HOME/.config/kitty/current-theme.conf"
+THEME_STATE="$HOME/.config/kitty/theme-state.txt"
+
+# Etapa 1: Troca o tema
+selected_theme=$(fd -e conf . "$KITTY_THEMES_DIR" --exec basename | fzf \
+  --prompt="🎨 Tema do Kitty > " \
+  --preview="bat --style=plain --color=always $KITTY_THEMES_DIR/{}")
+
+if [[ -n "$selected_theme" ]]; then
+  # Atualiza o link e salva o tema atual
+  ln -sf "$KITTY_THEMES_DIR/$selected_theme" "$CURRENT_THEME"
+  echo "${selected_theme%.conf}" > "$THEME_STATE"
+
+  # Aplica em TODAS as sessões existentes
+  kitty @ set-colors -a -c "$CURRENT_THEME"
+  
+  # Força o reload global (incluindo novas abas)
+  pkill -USR1 kitty  # Recarrega a configuração do Kitty
+fi
